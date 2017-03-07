@@ -263,10 +263,11 @@ PyLocale_strxfrm(PyObject* self, PyObject* args)
     errno = 0;
     n2 = wcsxfrm(buf, s, n1);
     if (errno) {
-        PyErr_SetFromErrno(PyExc_OSError);
-        goto exit;
-    }
-    if (n2 >= (size_t)n1) {
+        if (errno != ERANGE) {
+            PyErr_SetFromErrno(PyExc_OSError);
+            goto exit;
+        }
+        assert(n2 >= (size_t)n1);
         /* more space needed */
         wchar_t * new_buf = PyMem_Realloc(buf, (n2+1)*sizeof(wchar_t));
         if (!new_buf) {
